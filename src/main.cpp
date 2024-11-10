@@ -11,7 +11,6 @@ static float TextToFloat(const char *text) {
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
-#include "ball.h"
 
 
 void DrawSmoothRoundedRectangleLines(Rectangle rect, float roundness, int segments, float baseThickness, Color color) {
@@ -43,27 +42,46 @@ void DrawTextWithColors(const std::string &text, Vector2 position, int fontSize,
         {")", YELLOW}
         }; 
 
-    int xPos = position.x;  // Starting x position for text
+    float xPos = position.x;  // Start x position for text
+    float yPos = position.y;
 
-    std::istringstream ss(text);
-    std::string word;
+    std::string word; // Temporary string to build each word
+    Color wordColor = defaultColor;
     
-    while (ss >> word) {
-        Color wordColor = defaultColor;
+    for (size_t i = 0; i < text.length(); i++) {
+        char currentChar = text[i];
 
-        // Check if the word matches any keywords
-        for (const auto &keyword : keywords) {
-            if (word == keyword.first) {
-                wordColor = keyword.second;  // Set color for keyword
-                break;
+        if (currentChar == ' ' || currentChar == '\n') {
+            // Draw the accumulated word if there is one
+            if (!word.empty()) {
+                DrawTextEx(font, word.c_str(), (Vector2){xPos, yPos}, fontSize, 2, wordColor);
+                xPos += MeasureTextEx(font, word.c_str(), fontSize, 2).x + 2;  // Update xPos for next word
+                word.clear();  // Clear word for next accumulation
+                wordColor = defaultColor;  // Reset to default color
+            }
+
+            if (currentChar == ' ') {
+                xPos += 8;  // Advance xPos for space
+            } else if (currentChar == '\n') {
+                xPos = position.x;  // Reset xPos for new line
+                yPos += fontSize + 4;  // Move down for new line
+            }
+        } else {
+            word += currentChar;  // Accumulate characters into word
+            
+            // Check if the accumulated word matches any keywords
+            for (const auto &keyword : keywords) {
+                if (word == keyword.first) {
+                    wordColor = keyword.second;
+                    break;
+                }
             }
         }
+    }
 
-        // Draw the word with its respective color
-        DrawTextEx(font, word.c_str(), (Vector2){xPos, position.y}, fontSize, 2, wordColor);
-
-        // Update the x position for the next word
-        xPos += MeasureTextEx(font, word.c_str(), fontSize, 2).x + 10;  // 10px space between words
+    // Draw the last word if any remains
+    if (!word.empty()) {
+        DrawTextEx(font, word.c_str(), (Vector2){xPos, yPos}, fontSize, 2, wordColor);
     }
 }
 
