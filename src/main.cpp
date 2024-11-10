@@ -287,7 +287,7 @@ int main()
             auto duration = now.time_since_epoch();
             auto currentTime = duration_cast<std::chrono::milliseconds>(duration)
               .count();
-            if (currentTime - lastBackSpaceTime >= 100 && inputText.size() > 0) {
+            if (currentTime - lastBackSpaceTime >= 110 && inputText.size() > 0) {
                 auto now = system_clock::now();
                 auto duration = now.time_since_epoch();
                 lastBackSpaceTime = duration_cast<std::chrono::milliseconds>(duration)
@@ -297,8 +297,22 @@ int main()
                 bool isNewLine = inputText.back() == '\n';
                 bool isSpace = inputText.back() == ' ';
                 keyText.push_back(inputText.back());
-                inputText.pop_back();
 
+                bool ctrl = IsKeyDown(KEY_LEFT_CONTROL);
+                if (ctrl) {
+                    //Destroy the entire line.
+                    while (inputText.size() != 0) {
+                        if (inputText.back() == '\n') {
+                            inputText.pop_back();
+                            isNewLine = true;
+                            break;
+                        }
+                        inputText.pop_back();
+                    }
+                }
+                else {
+                    inputText.pop_back();
+                }
 
                 if (isNewLine) {
                     //Back spacing a new line, push cursor Y up, reset cursor x
@@ -306,11 +320,16 @@ int main()
                     cursorX = 70.0f + currentLineDrawingWidth(inputText);
                 }
                 else {
+                    if (ctrl) {
+                        cursorX = 70.0f;
+                    }
+                    else {
                     if (isSpace) {
                         cursorX -= 8;
                     }
                     else {
                         cursorX -= (MeasureText(keyText.c_str(), 20) + 2);
+                    }
                     }
                 }
 
