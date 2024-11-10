@@ -32,6 +32,7 @@ void DrawTextWithColors(const std::string &text, Vector2 position, int fontSize,
         {"int", YELLOW},
         {"while", YELLOW},
         {"void", YELLOW},
+        {"for", YELLOW},
         {"break", YELLOW},
         {"return", YELLOW},
              {"{", YELLOW},
@@ -133,7 +134,7 @@ int main()
     InitWindow(screenWidth, screenHeight, "FlipperOne");
     SetWindowState(FLAG_WINDOW_UNDECORATED);
 
-        Font customFont = LoadFont("fonts/haxrcorp-4089.ttf");
+    Font customFont = LoadFont("fonts/haxrcorp-4089.ttf");
 
     const char message[128] = "FLIPPERONE.EXE";
 
