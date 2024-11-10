@@ -224,12 +224,8 @@ int main()
             windowPosY = windowPosY + (targetPosY - windowPosY) * smoothing;
         }
 
-        // Stop dragging if mouse button is released
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-            dragging = false;
-        }
-
-        if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+        // Stop dragging if left mouse button is released or right button is pressed or window is out of focus
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT) || IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) || !IsWindowFocused()) {
             dragging = false;
         }
         // Update the window position manually (set it to the updated position)
@@ -281,6 +277,13 @@ int main()
             }
             key = GetCharPressed();  // Get the next character pressed
         }
+
+        if (IsKeyPressed(KEY_TAB)) {
+            //Move by 4 spaces
+            cursorX += 8 * 4;
+            inputText += "    ";
+        }
+        
 
           if (IsKeyDown(KEY_BACKSPACE)) {
              auto now = system_clock::now();
