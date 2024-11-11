@@ -149,8 +149,28 @@ int countCharsUntilNewlineBackward(const std::string& str) {
     return count;
 }
 
+bool canTabComplete(const std::string& str) {
+    int count = 0;
+    // Start from the end of the string and move backwards
+    for (auto it = str.rbegin(); it != str.rend(); ++it) {
+        if (*it == '\n') {
+            return false;  // Stop counting if a newline character is found
+        }
+        if (*it == ' ') {
+            ++count;  // Increment the count for each spacing character
+        }
+        else {
+            return false;
+        }
+        if (count == 4) {
+            return true;
+        }
+    }
+    return false;
+}
 
-int countSpacingCharsUntilNewlineBackward(const std::string& str) {
+
+int countSpacingCharsUntilNewlineBackward(const std::string& str, bool otherCharactersPermitted) {
     int count = 0;
     // Start from the end of the string and move backwards
     for (auto it = str.rbegin(); it != str.rend(); ++it) {
@@ -159,6 +179,10 @@ int countSpacingCharsUntilNewlineBackward(const std::string& str) {
         }
         if (*it == ' ') {
             ++count;  // Increment the count for each spacing character
+        }
+        else if (!otherCharactersPermitted) {
+            //No other characters permitted
+            return -1;
         }
     }
     return count;
@@ -386,7 +410,7 @@ int main()
                         inputText.pop_back();
                     }
                 }
-                else if ((countSpacingCharsUntilNewlineBackward(inputText) % 4 == 0) && countSpacingCharsUntilNewlineBackward(inputText) != 0) {
+                else if (canTabComplete(inputText) && countCharsUntilNewlineBackward(inputText) != 0) {
                     tabDelete = true;   
                     printf("Yay!");
                      for (int i = 0; i < 4; i++) {
@@ -456,8 +480,6 @@ int main()
             inputText.push_back('\n');
             cursorX = 70.0f;
             cursorY += 20;
-
-
         }
 
 
