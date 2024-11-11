@@ -24,7 +24,7 @@ void DrawSmoothRoundedRectangleLines(Rectangle rect, float roundness, int segmen
     }
 }
 
-void DrawTextWithColors(const std::string &text, Vector2 position, int fontSize, Font font, Color defaultColor) {
+void DrawTextWithColors(const std::string &text, Vector2 position, int fontSize, Font font, Color defaultColor, Color outlineColor) {
     // Words to highlight
     const std::vector<std::pair<std::string, Color>> keywords = {
         {"#include", GREEN},
@@ -48,17 +48,48 @@ void DrawTextWithColors(const std::string &text, Vector2 position, int fontSize,
 
     std::string word; // Temporary string to build each word
     Color wordColor = defaultColor;
+    Color quoteColor = outlineColor;
+
+    bool insideQuotes = false;
     
     for (size_t i = 0; i < text.length(); i++) {
         char currentChar = text[i];
 
-        if (currentChar == ' ' || currentChar == '\n') {
+        if (currentChar == '"') {
+            if (!word.empty()) {
+                DrawTextEx(font, word.c_str(), (Vector2){xPos, yPos}, fontSize, 2, wordColor);
+                xPos += MeasureTextEx(font, word.c_str(), fontSize, 2).x + 2;  // Update xPos for next word
+                word.clear();  // Clear word for next accumulation
+            }
+
+            // Toggle the quote mode and set the color
+            insideQuotes = !insideQuotes;
+            
+            if (insideQuotes) {
+                wordColor = insideQuotes ? quoteColor : defaultColor;
+            }
+
+
+            // Draw the quote character
+            
+            std::string quoteStr(1, '"');
+            DrawTextEx(font, quoteStr.c_str(), (Vector2){xPos, yPos}, fontSize, 2, wordColor);
+            xPos += MeasureTextEx(font, quoteStr.c_str(), fontSize, 2).x + 2;
+            if (!insideQuotes) {
+                wordColor = insideQuotes ? quoteColor : defaultColor;
+            }
+        }
+        else if (currentChar == ' ' || currentChar == '\n') {
             // Draw the accumulated word if there is one
             if (!word.empty()) {
                 DrawTextEx(font, word.c_str(), (Vector2){xPos, yPos}, fontSize, 2, wordColor);
                 xPos += MeasureTextEx(font, word.c_str(), fontSize, 2).x + 2;  // Update xPos for next word
                 word.clear();  // Clear word for next accumulation
-                wordColor = defaultColor;  // Reset to default color
+                
+                // Reset color if we're not inside quotes
+                if (!insideQuotes) {
+                    wordColor = defaultColor;
+                }
             }
 
             if (currentChar == ' ') {
@@ -114,6 +145,21 @@ int countCharsUntilNewlineBackward(const std::string& str) {
             break;  // Stop counting if a newline character is found
         }
         ++count;  // Increment the count for each character
+    }
+    return count;
+}
+
+
+int countSpacingCharsUntilNewlineBackward(const std::string& str) {
+    int count = 0;
+    // Start from the end of the string and move backwards
+    for (auto it = str.rbegin(); it != str.rend(); ++it) {
+        if (*it == '\n') {
+            break;  // Stop counting if a newline character is found
+        }
+        if (*it == ' ') {
+            ++count;  // Increment the count for each spacing character
+        }
     }
     return count;
 }
@@ -284,6 +330,31 @@ int main()
             cursorX += 8 * 4;
             inputText += "    ";
         }
+
+        if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_V)) {
+            //Paste text from clipboard
+            const char* clip = GetClipboardText();
+            std::string clipboard(clip);
+            
+            std::vector<std::string> dt;
+            std::stringstream ss(clipboard);
+            std::string temp;
+            while (std::getline(ss, temp)) {
+                dt.push_back(temp);
+            }
+            for (int i = 0; i < dt.size(); i++) {
+                if (i == 0) {
+                    //Add to current cursor
+                    cursorX += currentLineDrawingWidth(dt[i]);
+                }
+                else {
+                    //Next line, reset
+                    cursorX = 70.0F + currentLineDrawingWidth(dt[i]);
+                    cursorY += 20;
+                }
+            }
+            inputText += clipboard;
+        }
         
 
           if (IsKeyDown(KEY_BACKSPACE)) {
@@ -303,6 +374,7 @@ int main()
                 keyText.push_back(inputText.back());
 
                 bool ctrl = IsKeyDown(KEY_LEFT_CONTROL);
+                bool tabDelete = false;
                 if (ctrl) {
                     //Destroy the entire line.
                     while (inputText.size() != 0) {
@@ -314,6 +386,21 @@ int main()
                         inputText.pop_back();
                     }
                 }
+                else if ((countSpacingCharsUntilNewlineBackward(inputText) % 4 == 0) && countSpacingCharsUntilNewlineBackward(inputText) != 0) {
+                    tabDelete = true;   
+                    printf("Yay!");
+                     for (int i = 0; i < 4; i++) {
+                            std::string temp;
+                            temp.push_back(inputText.back());
+                            if (inputText.back() == ' ') {
+                                cursorX -= 8;
+                            }
+                            else {
+                                cursorX -= (MeasureText(temp.c_str(), 20) + 2);
+                            }
+                            inputText.pop_back();
+                        }
+                }
                 else {
                     inputText.pop_back();
                 }
@@ -324,19 +411,22 @@ int main()
                     cursorX = 70.0f + currentLineDrawingWidth(inputText);
                 }
                 else {
-                    if (ctrl) {
-                        cursorX = 70.0f;
+                    if (tabDelete) {
+
                     }
                     else {
-                    if (isSpace) {
-                        cursorX -= 8;
-                    }
-                    else {
-                        cursorX -= (MeasureText(keyText.c_str(), 20) + 2);
-                    }
+                        if (ctrl) {
+                            cursorX = 70.0f;
+                        }
+
+                        if (isSpace) {
+                            cursorX -= 8;
+                        }
+                        else {
+                            cursorX -= (MeasureText(keyText.c_str(), 20) + 2);
+                        }
                     }
                 }
-
             }
         }
 
@@ -422,7 +512,7 @@ int main()
         int i = 0;
         while (getline(ss, line)) {
             // Draw the current line
-            DrawTextWithColors(line, (Vector2){textBox.x + 10, yOffset}, 20, GetFontDefault(), WHITE);
+            DrawTextWithColors(line, (Vector2){textBox.x + 10, yOffset}, 20, GetFontDefault(), WHITE, outlineColor);
             // Move to the next line
             yOffset += lineHeight;
         }
