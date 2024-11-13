@@ -12,6 +12,9 @@ static float TextToFloat(const char *text) {
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
+#include "window.h"
+#include "mainmenu.h"
+
 
 void DrawSmoothRoundedRectangleLines(Rectangle rect, float roundness, int segments, float baseThickness, Color color) {
     // Draw several layers of lines with decreasing opacity to simulate anti-aliasing
@@ -198,20 +201,17 @@ int main()
               .count();
     // Initialization
     //--------------------------------------------------------------------------------------
-    int screenWidth = 1280;
-    int screenHeight = 720;
 
-    InitWindow(screenWidth, screenHeight, "FlipperOne");
-    SetWindowState(FLAG_WINDOW_UNDECORATED);
+    Window window("FLIPPERONE", 1280, 720);
+
+
+    window.create();
 
     Font customFont = LoadFont("fonts/haxrcorp-4089.ttf");
 
     const char message[128] = "FLIPPERONE.EXE";
 
     int framesCounter = 0;
-
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
-
 // Define "LOGS" text position and size
     const char* buttonText = "LOGS";
     const int textSize = 20;
@@ -261,19 +261,19 @@ int main()
     bool isMaximized = false;
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (window.isRunning())    // Detect window close button or ESC key
     {
-            Vector2 textPos = { 30, screenHeight - 40 };
+            Vector2 textPos = { 30, window.height - 40 };
 
         Rectangle buttonRect = { textPos.x - 10, textPos.y - 10, MeasureTextEx(customFont, buttonText, textSize, textSpacing).x + 20, textSize + 20 };
 
-           Rectangle rect = {offsetX, offsetY, screenWidth - offsetX * 2, screenHeight - offsetY * 2};  // Position (x, y) and size (width, height)
+           Rectangle rect = {offsetX, offsetY, window.width - offsetX * 2, window.height - offsetY * 2};  // Position (x, y) and size (width, height)
 
     Rectangle textBox = { rect.x + 52, rect.y + 52, rect.width - 54, rect.height - 54};
 
-        Rectangle xButton = { screenWidth - navigationButtonSize - 10, 10, navigationButtonSize, navigationButtonSize };
-    Rectangle maximizeButton = { screenWidth - navigationButtonSize - 45, 10, navigationButtonSize, navigationButtonSize };
-    Rectangle minimizeButton = { screenWidth - navigationButtonSize - 80, 10, navigationButtonSize, navigationButtonSize };
+        Rectangle xButton = { window.width - navigationButtonSize - 10, 10, navigationButtonSize, navigationButtonSize };
+    Rectangle maximizeButton = { window.width - navigationButtonSize - 45, 10, navigationButtonSize, navigationButtonSize };
+    Rectangle minimizeButton = { window.width - navigationButtonSize - 80, 10, navigationButtonSize, navigationButtonSize };
 
 
 
@@ -311,17 +311,17 @@ int main()
         bool maximizeButtonClicked = CheckCollisionPointRec(GetMousePosition(), maximizeButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
         if (maximizeButtonClicked) {
             if (!isMaximized) {
-                screenWidth = GetMonitorWidth(0);
-                screenHeight = GetMonitorHeight(0);
+                window.width = GetMonitorWidth(0);
+                window.height = GetMonitorHeight(0);
                                 SetWindowPosition(0, 0);  // Position it at the top-left corner
-                SetWindowSize(screenWidth, screenHeight);
+                SetWindowSize(window.width, window.height);
                 isMaximized = true;
             } else {
                 // Restore the window to its original size
-                screenWidth = 1280;
-                screenHeight = 720;
-                SetWindowSize(screenWidth, screenHeight);
-                SetWindowPosition((GetMonitorWidth(0) - screenWidth) / 2, (GetMonitorHeight(0) - screenHeight) / 2);
+                window.width = 1280;
+                window.height = 720;
+                SetWindowSize(window.width, window.height);
+                SetWindowPosition((GetMonitorWidth(0) - window.width) / 2, (GetMonitorHeight(0) - window.height) / 2);
                 isMaximized = false;
             }   
         }   
@@ -501,20 +501,9 @@ int main()
              // Draw the filled rounded rectangle with a nearly black background
         DrawRectangleRounded(rect, roundness, segments, backgroundColor);
 
-            // Draw the thick grid inside the rounded rectangle
-        for (int x = (int)rect.x; x < rect.x + rect.width; x += gridSpacing) {
-            // Ensure the line stays inside the rounded rectangle
-            if (x > rect.x && x < rect.x + rect.width) {
-                DrawLineEx((Vector2){x, rect.y}, (Vector2){x, rect.y + rect.height}, gridThickness, gridColor);
-            }
-        }
+        
 
-        for (int y = (int)rect.y; y < rect.y + rect.height; y += gridSpacing) {
-            // Ensure the line stays inside the rounded rectangle
-            if (y > rect.y && y < rect.y + rect.height) {
-                DrawLineEx((Vector2){rect.x, y}, (Vector2){rect.x + rect.width, y}, gridThickness, gridColor);
-            }
-        }
+         main_menu_draw_background_grid(rect, gridSpacing, gridThickness, gridColor);
 
                 DrawTextEx(customFont, TextSubtext(message, 0, framesCounter / 10), (Vector2){210, 30}, 20, 2, outlineColor);
 
@@ -565,27 +554,7 @@ int main()
         // Draw the rectangle outline
         DrawRectangleLinesEx(buttonRect, 2, outlineColor);  // Button outline
 
-        if (CheckCollisionPointRec(GetMousePosition(), xButton)) {
-            DrawRectangleRec(xButton, RED);  // Button background (red color for the "X" button)
-        } 
-        else {
-            //DrawRectangleRec(xButton, outlineColor);  // Button background (red color for the "X" button)
-        }
-        DrawText("X", xButton.x + 8.9f, xButton.y + 5, 20, outlineColor);  // Draw "X" inside the button
-
-
-         if (CheckCollisionPointRec(GetMousePosition(), maximizeButton)) {
-            DrawRectangleRec(maximizeButton, RED);  
-        } 
-        
-        DrawText("O", maximizeButton.x + 8.9f, maximizeButton.y + 5, 20, outlineColor); 
-
-
-        if (CheckCollisionPointRec(GetMousePosition(), minimizeButton)) {
-            DrawRectangleRec(minimizeButton, RED);  
-        } 
-        
-        DrawText("_", minimizeButton.x + 8.9f, minimizeButton.y + 5, 20, outlineColor); 
+        main_menu_topbar(minimizeButton, maximizeButton, xButton, outlineColor);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -593,7 +562,7 @@ int main()
     UnloadFont(customFont);
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    window.destroy();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;
