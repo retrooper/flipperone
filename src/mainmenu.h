@@ -1,6 +1,9 @@
 #pragma once 
 #include <raylib.h>
+#include <random>
+
 void main_menu_draw_background_grid(Rectangle& rect, const float& gridSpacing, const float& gridThickness, Color& gridColor) {
+
          // Draw the thick grid inside the rounded rectangle
         for (int x = (int)rect.x; x < rect.x + rect.width; x += gridSpacing) {
             // Ensure the line stays inside the rounded rectangle
@@ -17,7 +20,15 @@ void main_menu_draw_background_grid(Rectangle& rect, const float& gridSpacing, c
         }
 }
 
-void main_menu_topbar(Rectangle& minimizeButton, Rectangle& maximizeButton, Rectangle& xButton, Color& outlineColor) {
+void main_menu_topbar(Font& font, std::string& subtitle, Rectangle& minimizeButton, Rectangle& maximizeButton, Rectangle& xButton, Color& outlineColor) {
+    //Draw title bar "FLIPPERONE.exe text"
+          std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> rand6(1, 40); // distribution in range [1, 6]
+    DrawTextEx(font, subtitle.c_str(), (Vector2){210 + (rand6(rng) == 40 ? 5 : 0), 30}, 20, 2, outlineColor);
+        
+
+
      if (CheckCollisionPointRec(GetMousePosition(), xButton)) {
             DrawRectangleRec(xButton, RED);  // Button background (red color for the "X" button)
         } 

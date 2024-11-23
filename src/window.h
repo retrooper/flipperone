@@ -3,7 +3,7 @@
 #include <raylib.h>
 
 class Window {
-    public:
+public:
     std::string title;
     int width;
     int height;

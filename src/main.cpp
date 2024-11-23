@@ -203,13 +203,12 @@ int main()
     //--------------------------------------------------------------------------------------
 
     Window window("FLIPPERONE", 1280, 720);
-
-
     window.create();
 
     Font customFont = LoadFont("fonts/haxrcorp-4089.ttf");
+    Font codingFont = LoadFont("fonts/JetBrainsMono-Regular.ttf");
 
-    const char message[128] = "FLIPPERONE.EXE";
+    std::string subtitle;
 
     int framesCounter = 0;
 // Define "LOGS" text position and size
@@ -505,8 +504,7 @@ int main()
 
          main_menu_draw_background_grid(rect, gridSpacing, gridThickness, gridColor);
 
-                DrawTextEx(customFont, TextSubtext(message, 0, framesCounter / 10), (Vector2){210, 30}, 20, 2, outlineColor);
-
+         subtitle = TextSubtext("FLIPPERONE.EXE", 0, framesCounter / 10);
 
                     // Draw the text box on the right side of the rounded rectangle
         DrawRectangleRec(textBox, BLACK);  // Draw the background of the text box
@@ -520,7 +518,7 @@ int main()
         // Loop through each line of the input text and draw it
         std::istringstream ss(inputText);
         std::string line;
-        int i = 0;
+
         while (getline(ss, line)) {
             // Draw the current line
             DrawTextWithColors(line, (Vector2){textBox.x + 10, yOffset}, 20, GetFontDefault(), WHITE, outlineColor);
@@ -546,7 +544,7 @@ int main()
          // Optionally, you can also draw the button's rectangle with a background color
         // This could be useful if you want the button to stand out
         if (isClicked) {
-                            DrawRectangleRec(buttonRect, (Color){ 255, 165, 0, 255 });  // Light background when hovered
+            DrawRectangleRec(buttonRect, (Color){ 255, 165, 0, 255 });  // Light background when hovered
         }else if (isHovered) {
             DrawRectangleRec(buttonRect, (Color){ 255, 165, 0, 50 });  // Light background when hovered
         }
@@ -554,12 +552,13 @@ int main()
         // Draw the rectangle outline
         DrawRectangleLinesEx(buttonRect, 2, outlineColor);  // Button outline
 
-        main_menu_topbar(minimizeButton, maximizeButton, xButton, outlineColor);
+        main_menu_topbar(customFont, subtitle, minimizeButton, maximizeButton, xButton, outlineColor);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
     UnloadFont(customFont);
+    UnloadFont(codingFont);
     // De-Initialization
     //--------------------------------------------------------------------------------------
     window.destroy();        // Close window and OpenGL context
