@@ -2,4 +2,4 @@
 
 Code Editor written in C++ using Raylib.
 
-![image](https://github.com/user-attachments/assets/38e9742f-9feb-4faf-a15b-cd2d237ab52c)
+![FlipperOne_Animation](https://github.com/user-attachments/assets/c7b35afc-b5c3-44f4-b832-e7a0532a7251)
