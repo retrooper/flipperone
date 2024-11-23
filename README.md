@@ -1,2 +1,3 @@
-# Purps
-IDE being worked on
+# FlipperOne (qFlipper theme inspired IDE)
+
+Code Editor written in C++ using Raylib.
