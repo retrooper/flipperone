@@ -4,9 +4,6 @@
 #include <string>
 #include <chrono>
 
-static float TextToFloat(const char *text) {
-    return -1.0f;
-}
 #include <raylib.h>
 
 #define RAYGUI_IMPLEMENTATION
@@ -23,7 +20,7 @@ void DrawSmoothRoundedRectangleLines(Rectangle rect, float roundness, int segmen
         Color layerColor = color;
         layerColor.a = (unsigned char)(color.a / (i + 2));  // Decrease opacity for each layer
 
-        DrawRectangleRoundedLines(rect, roundness, segments, thickness, layerColor);
+        DrawRectangleRoundedLines(rect, roundness, segments, layerColor);
     }
 }
 
